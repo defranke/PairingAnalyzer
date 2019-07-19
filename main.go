@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"regexp"
@@ -17,28 +18,74 @@ type CountItem struct {
 }
 
 func main() {
-	repos := make([]string, 0)
-
+	repoPath := ""
 	if len(os.Args) > 1 {
-		for i := 1; i < len(os.Args); i++ {
-			repos = append(repos, os.Args[i])
+		repoPath = os.Args[1]
+	}
+
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("")
+	fmt.Println("")
+	fmt.Println("################################################")
+	fmt.Println("🎉🎉🎉 Welcome to the Pairing Analyzer! 🎉🎉🎉")
+	fmt.Println("################################################")
+	fmt.Println("")
+	for repoPath == "" {
+		fmt.Print("Path to Git Repository: ")
+		pathBytes, _ := reader.ReadString('\n')
+		repoPath = string(pathBytes)
+	}
+
+	repo := NewGitRepository(strings.Trim(repoPath, "\n"))
+	fmt.Println("⏳ Analyzing...")
+	repo.Analyze()
+
+	for true {
+		fmt.Println("What do you want to do?")
+		fmt.Println("[1] 👬 Output Pairing Statistics")
+		fmt.Println("[2] 🕺 Output Single Statistics")
+		fmt.Println("[3] 👋 Exit")
+
+		fmt.Print("➡️  ")
+		cmdBytes, _ := reader.ReadString('\n')
+		cmd := strings.Trim(string(cmdBytes), "\n")
+
+		if cmd == "1" {
+			repo.OutputPairStats()
+		} else if cmd == "2" {
+			repo.OutputSingleStats()
+		} else if cmd == "3" {
+			fmt.Println("Bye 👋")
+			break
+		} else {
+			fmt.Println("❓ Unknown command")
 		}
+		fmt.Println("\n")
 	}
 
-	globalAuthorCount := make([]*CountItem, 0)
-	globalPairingCount := make([]*CountItem, 0)
+	// repos := make([]string, 0)
 
-	for _, path := range repos {
-		authorCount, pairingCount := analyzeRepository(path)
+	// if len(os.Args) > 1 {
+	// 	for i := 1; i < len(os.Args); i++ {
+	// 		repos = append(repos, os.Args[i])
+	// 	}
+	// }
 
-		printData(path, authorCount, pairingCount)
-		print("\n\n\n")
+	// globalAuthorCount := make([]*CountItem, 0)
+	// globalPairingCount := make([]*CountItem, 0)
 
-		globalAuthorCount = mergeLists(authorCount, globalAuthorCount)
-		globalPairingCount = mergeLists(pairingCount, globalPairingCount)
-	}
+	// for _, path := range repos {
+	// 	authorCount, pairingCount := analyzeRepository(path)
 
-	printData("TOTAL", globalAuthorCount, globalPairingCount)
+	// 	printData(path, authorCount, pairingCount)
+	// 	print("\n\n\n")
+
+	// 	globalAuthorCount = mergeLists(authorCount, globalAuthorCount)
+	// 	globalPairingCount = mergeLists(pairingCount, globalPairingCount)
+	// }
+
+	// printData("TOTAL", globalAuthorCount, globalPairingCount)
 }
 
 func analyzeRepository(path string) ([]*CountItem, []*CountItem) {
